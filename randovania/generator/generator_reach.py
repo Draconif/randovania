@@ -1,6 +1,7 @@
 import copy
 from typing import Iterator, Optional, Set, Dict, List, NamedTuple, Tuple
 
+from randovania.cython_graph import cgraph
 from randovania.game_description.game_description import GameDescription
 from randovania.game_description.node import Node, ResourceNode, PickupNode
 from randovania.game_description.requirements import RequirementSet, Requirement, RequirementAnd, \
@@ -91,6 +92,7 @@ class GeneratorReach:
                  ):
 
         self._game = game
+        self._optimized = cgraph.optimize_world(game.world_list, state.patches, game.dangerous_resources)
         self._state = state
         self._digraph = graph
         self._unreachable_paths = {}
@@ -109,19 +111,9 @@ class GeneratorReach:
         return reach
 
     def _potential_nodes_from(self, node: Node) -> Iterator[Tuple[Node, RequirementSet, bool]]:
-        extra_requirement = _extra_requirement_for_node(self._game, node)
-        requirement_to_leave = node.requirement_to_leave(self._state.patches, self._state.resources)
-
-        for target_node, requirement in self._game.world_list.potential_nodes_from(node, self.state.patches):
+        for target_node, requirement in self._optimized.potential_nodes_from(node):
             if target_node is None:
                 continue
-
-            if requirement_to_leave != Requirement.trivial():
-                requirement = RequirementAnd([requirement, requirement_to_leave])
-
-            if extra_requirement is not None:
-                requirement = RequirementAnd([requirement, extra_requirement])
-
             satisfied = requirement.satisfied(self._state.resources, self._state.energy)
             yield target_node, requirement.as_set, satisfied
 
