@@ -583,5 +583,14 @@ class RequirementSet:
             for individual in alternative.values():
                 yield individual
 
+    def patch_requirements(self, resources: CurrentResources) -> "RequirementSet":
+        return RequirementOr(
+            RequirementAnd(
+                individual.patch_requirements(resources, 1)
+                for individual in alternative.items
+            )
+            for alternative in self.alternatives
+        ).as_set
+
 
 SatisfiableRequirements = FrozenSet[RequirementList]

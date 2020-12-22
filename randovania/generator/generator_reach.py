@@ -12,7 +12,7 @@ from randovania.resolver.state import State
 class GraphPath(NamedTuple):
     previous_node: Optional[Node]
     node: Node
-    requirement: Requirement
+    requirement: RequirementSet
 
     def is_in_graph(self, digraph: graph_module.BaseGraph):
         if self.previous_node is None:
@@ -65,7 +65,7 @@ class GeneratorReach:
     _reachable_paths: Optional[Dict[int, List[Node]]]
     _reachable_costs: Optional[Dict[int, int]]
     _node_reachable_cache: Dict[int, bool]
-    _unreachable_paths: Dict[Tuple[Node, Node], Requirement]
+    _unreachable_paths: Dict[Tuple[Node, Node], RequirementSet]
     _safe_nodes: Optional[Set[int]]
     _is_node_safe_cache: Dict[Node, bool]
 
@@ -105,10 +105,10 @@ class GeneratorReach:
                          ) -> "GeneratorReach":
 
         reach = cls(game, initial_state, graph_module.RandovaniaGraph.new())
-        reach._expand_graph([GraphPath(None, initial_state.node, Requirement.trivial())])
+        reach._expand_graph([GraphPath(None, initial_state.node, RequirementSet.trivial())])
         return reach
 
-    def _potential_nodes_from(self, node: Node) -> Iterator[Tuple[Node, Requirement, bool]]:
+    def _potential_nodes_from(self, node: Node) -> Iterator[Tuple[Node, RequirementSet, bool]]:
         extra_requirement = _extra_requirement_for_node(self._game, node)
         requirement_to_leave = node.requirement_to_leave(self._state.patches, self._state.resources)
 
@@ -123,7 +123,7 @@ class GeneratorReach:
                 requirement = RequirementAnd([requirement, extra_requirement])
 
             satisfied = requirement.satisfied(self._state.resources, self._state.energy)
-            yield target_node, requirement, satisfied
+            yield target_node, requirement.as_set, satisfied
 
     def _expand_graph(self, paths_to_check: List[GraphPath]):
         # print("!! _expand_graph", len(paths_to_check))
@@ -298,7 +298,7 @@ class GeneratorReach:
             edges_to_remove = []
             for source, target, requirement in self._digraph.edges_data():
                 # FIXME: don't convert to set!
-                dangerous = requirement.as_set.dangerous_resources
+                dangerous = requirement.dangerous_resources
                 if dangerous and new_dangerous_resources.intersection(dangerous):
                     if not requirement.satisfied(new_state.resources, new_state.energy):
                         edges_to_remove.append((source, target))
@@ -319,11 +319,11 @@ class GeneratorReach:
         for (_, node), requirement in self._unreachable_paths.items():
             if self.is_reachable_node(node):
                 continue
-            requirements = requirement.patch_requirements(self.state.resources, 1).simplify().as_set
+            requirements = requirement.patch_requirements(self.state.resources)
             if node in results:
                 results[node] = results[node].expand_alternatives(requirements)
             else:
-                results[node] = requirement.as_set
+                results[node] = requirement
         return results
 
 
