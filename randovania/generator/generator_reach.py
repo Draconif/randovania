@@ -1,7 +1,6 @@
 import copy
 from typing import Iterator, Optional, Set, Dict, List, NamedTuple, Tuple
 
-from randovania.cython_graph import cgraph
 from randovania.cython_graph.cgraph import OptimizedGameDescription
 from randovania.game_description.game_description import GameDescription
 from randovania.game_description.node import Node, ResourceNode, PickupNode
