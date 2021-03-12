@@ -2,10 +2,10 @@ import copy
 from typing import Iterator, Optional, Set, Dict, List, NamedTuple, Tuple
 
 from randovania.cython_graph import cgraph
+from randovania.cython_graph.cgraph import OptimizedGameDescription
 from randovania.game_description.game_description import GameDescription
 from randovania.game_description.node import Node, ResourceNode, PickupNode
-from randovania.game_description.requirements import RequirementSet, Requirement, RequirementAnd, \
-    ResourceRequirement
+from randovania.game_description.requirements import RequirementSet, Requirement, ResourceRequirement
 from randovania.generator import graph as graph_module
 from randovania.resolver.state import State
 
@@ -41,7 +41,7 @@ def filter_pickup_nodes(nodes: Iterator[Node]) -> Iterator[PickupNode]:
 
 def filter_collectable(resource_nodes: Iterator[ResourceNode], reach: "GeneratorReach") -> Iterator[ResourceNode]:
     for resource_node in resource_nodes:
-        if resource_node.can_collect(reach.state.patches, reach.state.resources, reach.game.world_list.all_nodes):
+        if resource_node.can_collect(reach.state.patches, reach.state.resources, reach.all_nodes):
             yield resource_node
 
 
@@ -52,7 +52,7 @@ def filter_reachable(nodes: Iterator[Node], reach: "GeneratorReach") -> Iterator
 
 
 def filter_out_dangerous_actions(resource_nodes: Iterator[ResourceNode],
-                                 game: GameDescription,
+                                 game: OptimizedGameDescription,
                                  ) -> Iterator[ResourceNode]:
     for resource_node in resource_nodes:
         if resource_node.resource() not in game.dangerous_resources:
@@ -62,7 +62,6 @@ def filter_out_dangerous_actions(resource_nodes: Iterator[ResourceNode],
 class GeneratorReach:
     _digraph: graph_module.BaseGraph
     _state: State
-    _game: GameDescription
     _reachable_paths: Optional[Dict[int, List[Node]]]
     _reachable_costs: Optional[Dict[int, int]]
     _node_reachable_cache: Dict[int, bool]
@@ -72,7 +71,7 @@ class GeneratorReach:
 
     def __deepcopy__(self, memodict):
         reach = GeneratorReach(
-            self._game,
+            self._optimized,
             self._state,
             self._digraph.copy()
         )
@@ -86,13 +85,12 @@ class GeneratorReach:
         return reach
 
     def __init__(self,
-                 game: GameDescription,
+                 game: OptimizedGameDescription,
                  state: State,
                  graph: graph_module.BaseGraph
                  ):
 
-        self._game = game
-        self._optimized = cgraph.optimize_world(game.world_list, state.patches, game.dangerous_resources)
+        self._optimized = game
         self._state = state
         self._digraph = graph
         self._unreachable_paths = {}
@@ -102,7 +100,7 @@ class GeneratorReach:
 
     @classmethod
     def reach_from_state(cls,
-                         game: GameDescription,
+                         game: OptimizedGameDescription,
                          initial_state: State,
                          ) -> "GeneratorReach":
 
@@ -170,7 +168,7 @@ class GeneratorReach:
         if self._reachable_paths is not None:
             return
 
-        all_nodes = self.game.world_list.all_nodes
+        all_nodes = self._optimized.all_nodes
 
         def weight(source: int, target: int, attributes):
             if self._can_advance(all_nodes[target]):
@@ -210,7 +208,7 @@ class GeneratorReach:
         :return:
         """
         self._calculate_reachable_paths()
-        all_nodes = self.game.world_list.all_nodes
+        all_nodes = self._optimized.all_nodes
         for index in self._reachable_paths.keys():
             yield all_nodes[index]
 
@@ -219,12 +217,16 @@ class GeneratorReach:
         return self._state
 
     @property
-    def game(self) -> GameDescription:
-        return self._game
+    def game(self) -> OptimizedGameDescription:
+        return self._optimized
+
+    @property
+    def all_nodes(self) -> Tuple[Node, ...]:
+        return self._optimized.all_nodes
 
     @property
     def nodes(self) -> Iterator[Node]:
-        for node in self.game.world_list.all_nodes:
+        for node in self.all_nodes:
             if node.index in self._digraph:
                 yield node
 
@@ -278,20 +280,18 @@ class GeneratorReach:
         self._expand_graph(paths_to_check)
 
     def act_on(self, node: ResourceNode) -> None:
-        all_nodes = self.game.world_list.all_nodes
+        all_nodes = self._optimized.all_nodes
         new_dangerous_resources = set(
             resource
             for resource, quantity in node.resource_gain_on_collect(self.state.patches, self.state.resources, all_nodes)
-            if resource in self.game.dangerous_resources
+            if resource in self._optimized.dangerous_resources
         )
         new_state = self.state.act_on_node(node)
 
         if new_dangerous_resources:
             edges_to_remove = []
             for source, target, requirement in self._digraph.edges_data():
-                # FIXME: don't convert to set!
-                dangerous = requirement.dangerous_resources
-                if dangerous and new_dangerous_resources.intersection(dangerous):
+                if not new_dangerous_resources.isdisjoint(requirement.dangerous_resources):
                     if not requirement.satisfied(new_state.resources, new_state.energy):
                         edges_to_remove.append((source, target))
 
@@ -317,6 +317,10 @@ class GeneratorReach:
             else:
                 results[node] = requirement
         return results
+
+    def victory_condition_satisfied(self):
+        return self._optimized.victory_condition.satisfied(self.state.resources,
+                                                           self.state.energy)
 
 
 def _extra_requirement_for_node(game: GameDescription, node: Node) -> Optional[Requirement]:
@@ -364,12 +368,12 @@ def collect_all_safe_resources_in_reach(reach: GeneratorReach) -> None:
             break
 
         for action in actions:
-            if action.can_collect(reach.state.patches, reach.state.resources, reach.game.world_list.all_nodes):
+            if action.can_collect(reach.state.patches, reach.state.resources, reach.all_nodes):
                 # assert reach.is_safe_node(action)
                 reach.advance_to(reach.state.act_on_node(action), is_safe=True)
 
 
-def reach_with_all_safe_resources(game: GameDescription, initial_state: State) -> GeneratorReach:
+def reach_with_all_safe_resources(game: OptimizedGameDescription, initial_state: State) -> GeneratorReach:
     """
     Creates a new GeneratorReach using the given state and then collect all safe resources
     :param game:

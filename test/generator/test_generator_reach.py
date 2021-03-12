@@ -4,6 +4,8 @@ from typing import Tuple, List
 
 import pytest
 
+from randovania.cython_graph import cgraph
+from randovania.cython_graph.cgraph import OptimizedGameDescription
 from randovania.game_description import data_reader
 from randovania.game_description.area import Area
 from randovania.game_description.dock import DockWeaknessDatabase
@@ -49,13 +51,14 @@ def run_bootstrap(preset: Preset):
     return game, state, permalink
 
 
-def _create_reach_with_unsafe(game: GameDescription, state: State) -> GeneratorReach:
+def _create_reach_with_unsafe(game: OptimizedGameDescription, state: State) -> GeneratorReach:
     return advance_reach_with_possible_unsafe_resources(reach_with_all_safe_resources(game, state))
 
 
 def _create_reaches_and_compare(game: GameDescription, state: State) -> Tuple[GeneratorReach, GeneratorReach]:
-    first_reach = _create_reach_with_unsafe(game, state)
-    second_reach = _create_reach_with_unsafe(game, first_reach.state)
+    optimized = cgraph.optimize_game(game, state.patches)
+    first_reach = _create_reach_with_unsafe(optimized, state)
+    second_reach = _create_reach_with_unsafe(optimized, first_reach.state)
 
     assert first_reach.is_safe_node(first_reach.state.node)
     assert second_reach.is_safe_node(first_reach.state.node)
@@ -99,7 +102,7 @@ def test_database_collectable(preset_manager, preset_name, ignore_events, ignore
     expected_events = [event for event in game.resource_database.event if event.index not in ignore_events]
     expected_pickups = sorted(it.pickup_index for it in all_pickups if it.pickup_index.index not in ignore_pickups)
 
-    reach = _create_reach_with_unsafe(game, initial_state.heal())
+    reach = _create_reach_with_unsafe(cgraph.optimize_game(game, initial_state.patches), initial_state.heal())
     while list(collectable_resource_nodes(reach.nodes, reach)):
         reach.act_on(next(iter(collectable_resource_nodes(reach.nodes, reach))))
         reach = advance_reach_with_possible_unsafe_resources(reach)
@@ -174,7 +177,7 @@ def test_basic_search_with_translator_gate(has_translator: bool, echoes_resource
                           node_a, patches, None, echoes_resource_database, game.world_list)
 
     # Run
-    reach = reach_with_all_safe_resources(game, initial_state)
+    reach = reach_with_all_safe_resources(cgraph.optimize_game(game, initial_state.patches), initial_state)
 
     # Assert
     if has_translator:
@@ -227,7 +230,7 @@ def test_reach_size_from_start_echoes(small_echoes_game_description, default_lay
     state.resources[item("Missile")] = 5
 
     # Run
-    reach = GeneratorReach.reach_from_state(game, state)
+    reach = GeneratorReach.reach_from_state(cgraph.optimize_game(game, state.patches), state)
 
     # Assert
     assert list(reach.nodes) == nodes(

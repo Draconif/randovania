@@ -8,6 +8,7 @@ from random import Random
 from typing import Tuple, Iterator, NamedTuple, Set, AbstractSet, Union, Dict, \
     DefaultDict, Mapping, FrozenSet, Callable, List, TypeVar, Any, Optional
 
+from randovania.cython_graph import cgraph
 from randovania.game_description.assignment import PickupTarget
 from randovania.game_description.game_description import calculate_interesting_resources, GameDescription
 from randovania.game_description.game_patches import GamePatches
@@ -158,7 +159,9 @@ class PlayerState:
                  ):
         self.index = index
         self.game = game
-        self.reach = advance_reach_with_possible_unsafe_resources(reach_with_all_safe_resources(game, initial_state))
+
+        optimized = cgraph.optimize_game(game, initial_state.patches)
+        self.reach = advance_reach_with_possible_unsafe_resources(reach_with_all_safe_resources(optimized, initial_state))
         self.pickups_left = pickups_left
         self.configuration = configuration
 
@@ -536,8 +539,7 @@ def _calculate_weights_for(potential_reach: GeneratorReach,
                            current_uncollected: UncollectedState,
                            name: str
                            ) -> float:
-    if potential_reach.game.victory_condition.satisfied(potential_reach.state.resources,
-                                                        potential_reach.state.energy):
+    if potential_reach.victory_condition_satisfied():
         return _VICTORY_WEIGHT
 
     potential_uncollected = UncollectedState.from_reach(potential_reach) - current_uncollected

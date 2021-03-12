@@ -3,9 +3,10 @@ from typing import List, Tuple, Dict, Set
 
 import typing
 
+from randovania.game_description.game_description import GameDescription
 from randovania.game_description.game_patches import GamePatches
 from randovania.game_description.node import Node, ResourceNode
-from randovania.game_description.requirements import ResourceRequirement, RequirementAnd, RequirementOr
+from randovania.game_description.requirements import ResourceRequirement, RequirementAnd, RequirementOr, Requirement
 from randovania.game_description.resources.resource_info import ResourceInfo
 from randovania.game_description.resources.resource_type import ResourceType
 from randovania.game_description.world_list import WorldList
@@ -26,14 +27,18 @@ class NodeConnection:
         self.damage = damage
 
 
-class OptimizedWorldList:
+class OptimizedGameDescription:
     all_nodes: Tuple[Node, ...]
+    dangerous_resources: typing.FrozenSet[ResourceInfo]
+    victory_condition: Requirement
     requirements: List[ResourceRequirement]
     requirements_index: Dict[ResourceRequirement, int]
     adjacency: List[List[NodeConnection]]
 
-    def __init__(self, all_nodes, requirements, requirements_index, adjacency):
+    def __init__(self, all_nodes, dangerous_resources, victory_condition, requirements, requirements_index, adjacency):
         self.all_nodes = all_nodes
+        self.dangerous_resources = dangerous_resources
+        self.victory_condition = victory_condition
         self.requirements = requirements
         self.requirements_index = requirements_index
         self.adjacency = adjacency
@@ -57,9 +62,9 @@ class OptimizedWorldList:
                 yield target, self.requirement_for(source, target)
 
 
-def optimize_world(world_list: WorldList, patches: GamePatches,
-                   dangerous_resources: typing.FrozenSet[ResourceInfo]) -> OptimizedWorldList:
-    all_nodes = world_list.all_nodes
+def optimize_game(game: GameDescription, patches: GamePatches) -> OptimizedGameDescription:
+    all_nodes = game.world_list.all_nodes
+    dangerous_resources = game.dangerous_resources
 
     resource_reqs = collections.defaultdict(int)
     adjacency: List[List[NodeConnection]] = []
@@ -76,7 +81,7 @@ def optimize_world(world_list: WorldList, patches: GamePatches,
             if node_resource in dangerous_resources:
                 extra.append(ResourceRequirement(node_resource, 1, False))
 
-        for target, requirement in world_list.potential_nodes_from(node, patches):
+        for target, requirement in game.world_list.potential_nodes_from(node, patches):
             req_set = RequirementAnd([requirement, *extra]).as_set
             connections[(node, target)] = req_set
             for resource_req in req_set.all_individual:
@@ -97,4 +102,5 @@ def optimize_world(world_list: WorldList, patches: GamePatches,
                 {resource_req for resource_req in alternative.items if is_dmg(resource_req)},
             ))
 
-    return OptimizedWorldList(all_nodes, requirements, requirements_index, adjacency)
+    return OptimizedGameDescription(all_nodes, dangerous_resources, game.victory_condition,
+                                    requirements, requirements_index, adjacency)
