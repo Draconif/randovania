@@ -209,10 +209,12 @@ class OldGeneratorReach(GeneratorReach):
         # assert self.is_reachable_node(new_state.node)
 
         if is_safe or self.is_safe_node(new_state.node):
-            for index, _ in list(filter(lambda x: not x[1], self._node_reachable_cache.items())):
+            for index in [index for index, flag in self._node_reachable_cache.items()
+                          if not flag]:
                 del self._node_reachable_cache[index]
 
-            for node, _ in list(filter(lambda x: not x[1], self._is_node_safe_cache.items())):
+            for node in [node for node, flag in self._is_node_safe_cache.items()
+                         if not flag]:
                 del self._is_node_safe_cache[node]
         else:
             self._node_reachable_cache = {}
