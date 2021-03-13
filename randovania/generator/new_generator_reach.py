@@ -3,10 +3,19 @@ from typing import Iterator, Dict, Tuple
 from randovania.cython_graph.cgraph import OptimizedGameDescription
 from randovania.game_description.node import Node, ResourceNode
 from randovania.game_description.requirements import RequirementSet
+from randovania.generator.generator_reach import GeneratorReach
 from randovania.resolver.state import State
 
 
-class GeneratorReach:
+class NewGeneratorReach(GeneratorReach):
+    def __deepcopy__(self, memodict):
+        reach = NewGeneratorReach(self._optimized, self._state)
+        return reach
+
+    def __init__(self, game: OptimizedGameDescription, state: State):
+        self._optimized = game
+        self._state = state
+
     @classmethod
     def reach_from_state(cls,
                          game: OptimizedGameDescription,
@@ -18,20 +27,13 @@ class GeneratorReach:
 
     @property
     def game(self) -> OptimizedGameDescription:
-        raise NotImplementedError()
-
-    def victory_condition_satisfied(self):
-        return self.game.victory_condition.satisfied(self.state.resources, self.state.energy)
-
-    @property
-    def all_nodes(self) -> Tuple[Node, ...]:
-        return self.game.all_nodes
+        return self._optimized
 
     # ASDF
 
     @property
     def state(self) -> State:
-        raise NotImplementedError()
+        return self._state
 
     def advance_to(self, new_state: State,
                    is_safe: bool = False,
@@ -48,10 +50,6 @@ class GeneratorReach:
 
     @property
     def connected_nodes(self) -> Iterator[Node]:
-        """
-        An iterator of all nodes there's an path from the reach's starting point. Similar to is_reachable_node
-        :return:
-        """
         raise NotImplementedError()
 
     @property
@@ -70,6 +68,3 @@ class GeneratorReach:
 
     def unreachable_nodes_with_requirements(self) -> Dict[Node, RequirementSet]:
         raise NotImplementedError()
-
-
-

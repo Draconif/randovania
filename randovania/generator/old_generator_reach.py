@@ -182,10 +182,6 @@ class OldGeneratorReach(GeneratorReach):
         return self._optimized
 
     @property
-    def all_nodes(self) -> Tuple[Node, ...]:
-        return self._optimized.all_nodes
-
-    @property
     def nodes(self) -> Iterator[Node]:
         for node in self.all_nodes:
             if node.index in self._digraph:
@@ -278,7 +274,3 @@ class OldGeneratorReach(GeneratorReach):
             else:
                 results[node] = requirement
         return results
-
-    def victory_condition_satisfied(self):
-        return self._optimized.victory_condition.satisfied(self.state.resources,
-                                                           self.state.energy)
