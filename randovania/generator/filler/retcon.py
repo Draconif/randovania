@@ -23,9 +23,9 @@ from randovania.game_description.resources.resource_type import ResourceType
 from randovania.game_description.world import World
 from randovania.game_description.world_list import WorldList
 from randovania.generator.filler.filler_library import UnableToGenerate, should_have_hint
-from randovania.generator.generator_reach import GeneratorReach, collectable_resource_nodes, \
-    advance_reach_with_possible_unsafe_resources, reach_with_all_safe_resources, \
-    get_collectable_resource_nodes_of_reach, advance_to_with_reach_copy
+from randovania.generator.generator_reach import GeneratorReach
+from randovania.generator.reach_lib import collectable_resource_nodes, get_collectable_resource_nodes_of_reach, \
+    reach_with_all_safe_resources, advance_reach_with_possible_unsafe_resources, advance_to_with_reach_copy
 from randovania.layout.available_locations import RandomizationMode
 from randovania.resolver import debug
 from randovania.resolver.random_lib import select_element_with_weight

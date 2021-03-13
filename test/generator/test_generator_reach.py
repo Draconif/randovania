@@ -23,9 +23,10 @@ from randovania.game_description.world_list import WorldList
 from randovania.games.game import RandovaniaGame
 from randovania.generator import base_patches_factory
 from randovania.generator.generator_reach import (
-    GeneratorReach, filter_pickup_nodes,
-    reach_with_all_safe_resources, get_collectable_resource_nodes_of_reach,
-    advance_reach_with_possible_unsafe_resources, collectable_resource_nodes)
+    GeneratorReach)
+from randovania.generator.old_generator_reach import OldGeneratorReach
+from randovania.generator.reach_lib import filter_pickup_nodes, collectable_resource_nodes, \
+    get_collectable_resource_nodes_of_reach, reach_with_all_safe_resources, advance_reach_with_possible_unsafe_resources
 from randovania.generator.item_pool import pool_creator
 from randovania.layout.base_configuration import StartingLocationList
 from randovania.layout.permalink import Permalink
@@ -230,7 +231,7 @@ def test_reach_size_from_start_echoes(small_echoes_game_description, default_lay
     state.resources[item("Missile")] = 5
 
     # Run
-    reach = GeneratorReach.reach_from_state(cgraph.optimize_game(game, state.patches), state)
+    reach = OldGeneratorReach.reach_from_state(cgraph.optimize_game(game, state.patches), state)
 
     # Assert
     assert list(reach.nodes) == nodes(
