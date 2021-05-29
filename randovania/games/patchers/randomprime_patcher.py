@@ -11,6 +11,7 @@ from typing import Optional, List, Union
 
 import py_randomprime
 
+import randovania
 from randovania.dol_patching.assembler import ppc
 from randovania.dol_patching.dol_file import DolHeader, DolEditor
 from randovania.game_description import default_database
@@ -22,13 +23,13 @@ from randovania.game_description.resources.resource_info import CurrentResources
 from randovania.game_description.world_list import WorldList
 from randovania.games.game import RandovaniaGame
 from randovania.games.patcher import Patcher
-from randovania.games.prime import prime1_elevators, all_prime_dol_patches
-from randovania.games.prime.patcher_file_lib import pickup_exporter, item_names
+from randovania.games.prime import prime1_elevators, all_prime_dol_patches, prime_items
+from randovania.games.prime.patcher_file_lib import pickup_exporter, item_names, guaranteed_item_hint, hint_lib
 from randovania.generator.item_pool import pickup_creator
 from randovania.interface_common.cosmetic_patches import CosmeticPatches
 from randovania.interface_common.players_configuration import PlayersConfiguration
 from randovania.layout.layout_description import LayoutDescription
-from randovania.layout.prime_configuration import PrimeConfiguration
+from randovania.layout.prime1.prime_configuration import PrimeConfiguration
 from randovania.lib.status_update_lib import ProgressUpdateCallable
 
 _STARTING_ITEM_NAME_TO_INDEX = {
@@ -189,6 +190,12 @@ class RandomprimePatcher(Patcher):
         configuration = typing.cast(PrimeConfiguration, preset.configuration)
         rng = Random(description.permalink.seed_number)
 
+        area_namers = {
+            index: hint_lib.AreaNamer(default_database.game_description_for(player_preset.game).world_list)
+            for index, player_preset in description.permalink.presets.items()
+        }
+
+        scan_visor = db.resource_database.get_item_by_name("Scan Visor")
         useless_target = PickupTarget(pickup_creator.create_prime1_useless_pickup(db.resource_database),
                                       players_config.player_index)
 
@@ -204,6 +211,9 @@ class RandomprimePatcher(Patcher):
         )
         world_data = {}
         for world in db.world_list.worlds:
+            if world.name == "End of Game":
+                continue
+
             world_data[world.name] = {
                 "transports": {},
                 "rooms": {}
@@ -232,15 +242,35 @@ class RandomprimePatcher(Patcher):
         if extra_starting:
             starting_memo = ", ".join(extra_starting)
 
+        if cosmetic_patches.open_map and configuration.elevators.is_vanilla:
+            map_default_state = "visible"
+        else:
+            map_default_state = "default"
+
+        # credits_string = "&push;&font=C29C51F1;&main-color=#89D6FF;Major Item Locations&pop;",
+        present_artifacts = [
+            db.resource_database.get_item(index)
+            for index in prime_items.ARTIFACT_ITEMS[:configuration.artifacts.num_artifacts]
+        ]
+
+        resulting_hints = guaranteed_item_hint.create_guaranteed_hints_for_resources(
+            description.all_patches, players_config, area_namers, False,
+            [db.resource_database.get_item(index) for index in prime_items.ARTIFACT_ITEMS],
+        )
+
         return {
             "seed": description.permalink.seed_number,
             "preferences": {
-                "skipHudmenus": cosmetic_patches.disable_hud_popup,
+                "qolGameBreaking": configuration.qol_game_breaking,
+                "qolCosmetic": cosmetic_patches.disable_hud_popup,
+                "qolLogical": configuration.qol_logical,
+                "qolMinorCutscenes": configuration.qol_minor_cutscenes,
+                "qolMajorCutscenes": configuration.qol_major_cutscenes,
+
                 "obfuscateItems": False,
-                "mapDefaultState": None,
+                "mapDefaultState": map_default_state,
                 "artifactHintBehavior": None,
                 "trilogyDiscPath": None,
-                "keepFmvs": True,
                 "quickplay": False,
                 "quiet": False,
             },
@@ -248,9 +278,10 @@ class RandomprimePatcher(Patcher):
                 "startingRoom": _name_for_location(db.world_list, patches.starting_location),
                 "startingMemo": starting_memo,
 
-                "nonvariaHeatDamage": True,
-                "staggered_suit_damage": True,
-                "autoEnabledElevators": False,
+                "nonvariaHeatDamage": configuration.heat_protection_only_varia,
+                "staggeredSuitDamage": configuration.progressive_damage_reduction,
+                "heatDamagePerSec": configuration.heat_damage,
+                "autoEnabledElevators": patches.starting_items.get(scan_visor, 0) == 0,
 
                 "startingItems": {
                     name: _starting_items_value_for(db.resource_database, patches.starting_items, index)
@@ -258,11 +289,25 @@ class RandomprimePatcher(Patcher):
                 },
 
                 "etankCapacity": configuration.energy_per_tank,
-                "mainMenuMessage": description.shareable_word_hash,
+                "itemMaxCapacity": {
+                    "Unknown Item 1": db.resource_database.multiworld_magic_item.max_capacity,
+                },
 
                 "gameBanner": {
                     "gameName": "Metroid Prime: Randomizer",
                     "gameNameFull": "Metroid Prime: Randomizer - {}".format(description.shareable_hash),
+                    "description": "Seed Hash: {}".format(description.shareable_word_hash),
+                },
+                "mainMenuMessage": "Randovania v{}\n{}".format(randovania.VERSION, description.shareable_word_hash),
+
+                "creditsString": None,
+                "artifactHints": {
+                    artifact.long_name: text
+                    for artifact, text in resulting_hints.items()
+                },
+                "artifactTempleLayerOverrides": {
+                    artifact.long_name: True
+                    for artifact in present_artifacts
                 },
             },
             "levelData": world_data,
@@ -273,7 +318,6 @@ class RandomprimePatcher(Patcher):
         if input_file is None:
             raise ValueError("Missing input file")
 
-        db = default_database.game_description_for(RandovaniaGame.PRIME1)
         new_config = copy.copy(patch_data)
         new_config["inputIso"] = os.fspath(input_file)
         new_config["outputIso"] = os.fspath(output_file)
@@ -286,15 +330,9 @@ class RandomprimePatcher(Patcher):
             py_randomprime.ProgressNotifier(lambda percent, msg: progress_update(msg, percent)),
         )
 
-        magic_item = db.resource_database.multiworld_magic_item
-
         with IsoDolEditor.open_iso(output_file) as dol_editor:
             dol_editor = typing.cast(IsoDolEditor, dol_editor)
             dol_editor.symbols = py_randomprime.rust.get_mp1_symbols("0-00")
-
-            # Change the max capacity
-            dol_editor.write(0x803cd6c0 + magic_item.index * 4,
-                             struct.pack(">L", magic_item.max_capacity))
 
             # Apply remote execution patch
             dol_editor.write_instructions(

@@ -2,6 +2,7 @@ import json
 import os
 from unittest.mock import MagicMock, ANY
 
+import randovania
 from randovania.games.patchers.randomprime_patcher import RandomprimePatcher
 from randovania.interface_common.cosmetic_patches import CosmeticPatches
 from randovania.interface_common.players_configuration import PlayersConfiguration
@@ -18,31 +19,123 @@ def test_create_patch_data(test_files_dir):
 
     # Run
     data = patcher.create_patch_data(description, players_config, cosmetic_patches)
-    print(data)
 
     # Assert
     assert data == {
         'seed': 1499122484,
-        'preferences': {'skipHudmenus': True, 'obfuscateItems': False, 'mapDefaultState': None,
-                        'artifactHintBehavior': None, 'trilogyDiscPath': None, 'keepFmvs': True,
-                        'quickplay': False, 'quiet': False},
+        'preferences': {
+            'artifactHintBehavior': None,
+            'mapDefaultState': 'default',
+            'obfuscateItems': False,
+            'qolCosmetic': True,
+            'qolGameBreaking': True,
+            'qolLogical': True,
+            'qolMajorCutscenes': False,
+            'qolMinorCutscenes': False,
+            'quickplay': False,
+            'quiet': False,
+            'trilogyDiscPath': None,
+        },
         'gameConfig': {
-            'startingRoom': 'Tallon Overworld:Landing Site', 'startingMemo': '5 Missiles',
-            'nonvariaHeatDamage': True, 'staggered_suit_damage': True,
+            'artifactHints': {
+                'Artifact of Chozo': '&push;&main-color=#FF6705B3;Artifact of Chozo&pop; is located in '
+                                     "&push;&main-color=#d4cc33;Echoes&pop;'s "
+                                     "&push;&main-color=#FF3333;Dark Agon Wastes - Ing Cache 1&pop;.",
+                'Artifact of Elder': '&push;&main-color=#FF6705B3;Artifact of Elder&pop; is located in '
+                                     "&push;&main-color=#d4cc33;Echoes&pop;'s "
+                                     '&push;&main-color=#FF3333;Agon Wastes - Sand Cache&pop;.',
+                'Artifact of Lifegiver': '&push;&main-color=#FF6705B3;Artifact of Lifegiver&pop; is located in '
+                                         "&push;&main-color=#d4cc33;Echoes&pop;'s "
+                                         '&push;&main-color=#FF3333;Temple Grounds - Storage Cavern B&pop;.',
+                'Artifact of Nature': '&push;&main-color=#FF6705B3;Artifact of Nature&pop; is located in '
+                                      "&push;&main-color=#d4cc33;Echoes&pop;'s "
+                                      '&push;&main-color=#FF3333;Sanctuary Fortress - Hall of Combat Mastery&pop;.',
+                'Artifact of Newborn': '&push;&main-color=#FF6705B3;Artifact of Newborn&pop; is located in '
+                                       "&push;&main-color=#d4cc33;Echoes&pop;'s "
+                                       '&push;&main-color=#FF3333;Great Temple - Transport A Access&pop;.',
+                'Artifact of Spirit': '&push;&main-color=#FF6705B3;Artifact of Spirit&pop; is located in '
+                                      "&push;&main-color=#d4cc33;Echoes&pop;'s "
+                                      '&push;&main-color=#FF3333;Temple Grounds - Transport to Agon Wastes&pop;.',
+                'Artifact of Strength': '&push;&main-color=#FF6705B3;Artifact of Strength&pop; is located in '
+                                        "&push;&main-color=#d4cc33;Echoes&pop;'s "
+                                        '&push;&main-color=#FF3333;Agon Wastes - Storage D&pop;.',
+                'Artifact of Sun': '&push;&main-color=#FF6705B3;Artifact of Sun&pop; is located in '
+                                   "&push;&main-color=#d4cc33;Echoes&pop;'s "
+                                   '&push;&main-color=#FF3333;Agon Wastes - Command Center&pop;.',
+                'Artifact of Truth': '&push;&main-color=#FF6705B3;Artifact of Truth&pop; is located in '
+                                     "&push;&main-color=#d4cc33;Echoes&pop;'s "
+                                     '&push;&main-color=#FF3333;Agon Wastes - Mining Station Access&pop;.',
+                'Artifact of Warrior': '&push;&main-color=#FF6705B3;Artifact of Warrior&pop; is located in '
+                                       "&push;&main-color=#d4cc33;Echoes&pop;'s "
+                                       '&push;&main-color=#FF3333;Agon Wastes - Portal Access A&pop;.',
+                'Artifact of Wild': '&push;&main-color=#FF6705B3;Artifact of Wild&pop; is located in '
+                                    "&push;&main-color=#d4cc33;Prime&pop;'s "
+                                    '&push;&main-color=#FF3333;Tallon Overworld - Transport Tunnel B&pop;.',
+                'Artifact of World': '&push;&main-color=#FF6705B3;Artifact of World&pop; is located in '
+                                     "&push;&main-color=#d4cc33;Echoes&pop;'s "
+                                     '&push;&main-color=#FF3333;Ing Hive - Culling Chamber&pop;.'
+            },
+
+            'artifactTempleLayerOverrides': {
+                'Artifact of Chozo': True,
+                'Artifact of Elder': True,
+                'Artifact of Lifegiver': True,
+                'Artifact of Nature': True,
+                'Artifact of Newborn': True,
+                'Artifact of Spirit': True,
+                'Artifact of Strength': True,
+                'Artifact of Sun': True,
+                'Artifact of Truth': True,
+                'Artifact of Warrior': True,
+                'Artifact of Wild': True,
+                'Artifact of World': True,
+            },
             'autoEnabledElevators': False,
-            'startingItems': {'powerBeam': True, 'ice': False, 'wave': False, 'plasma': False,
-                              'missiles': 5, 'scanVisor': True, 'bombs': False, 'powerBombs': 0,
-                              'flamethrower': False, 'thermalVisor': False, 'charge': False,
-                              'superMissile': False, 'grapple': False, 'xray': False,
-                              'iceSpreader': False, 'spaceJump': True, 'morphBall': True,
-                              'boostBall': False, 'spiderBall': False, 'gravitySuit': False,
-                              'variaSuit': False, 'phazonSuit': False, 'energyTanks': 0,
-                              'wavebuster': False}, 'etankCapacity': 110,
-            'mainMenuMessage': 'Culling Chamber Staging',
-            'gameBanner': {'gameName': 'Metroid Prime: Randomizer',
-                           'gameNameFull': 'Metroid Prime: Randomizer - ALKZLIJL'}},
+            'creditsString': None,
+            'etankCapacity': 110,
+            'gameBanner': {'description': 'Seed Hash: Worship Key Sunburst',
+                           'gameName': 'Metroid Prime: Randomizer',
+                           'gameNameFull': 'Metroid Prime: Randomizer - MV523B5D'},
+            'heatDamagePerSec': 10.0,
+            'itemMaxCapacity': {'Unknown Item 1': 65536},
+            'mainMenuMessage': f'Randovania v{randovania.VERSION}\nWorship Key Sunburst',
+            'nonvariaHeatDamage': True,
+            'staggeredSuitDamage': True,
+            'startingItems': {
+                'bombs': False,
+                'boostBall': False,
+                'charge': False,
+                'energyTanks': 0,
+                'flamethrower': False,
+                'grapple': False,
+                'gravitySuit': False,
+                'ice': False,
+                'iceSpreader': False,
+                'missiles': 5,
+                'morphBall': True,
+                'phazonSuit': False,
+                'plasma': False,
+                'powerBeam': True,
+                'powerBombs': 0,
+                'scanVisor': True,
+                'spaceJump': True,
+                'spiderBall': False,
+                'superMissile': False,
+                'thermalVisor': False,
+                'variaSuit': False,
+                'wave': False,
+                'wavebuster': False,
+                'xray': False,
+            },
+            'startingMemo': '5 Missiles',
+            'startingRoom': 'Tallon Overworld:Landing Site'},
         'levelData': {
-            'Impact Crater': {'transports': {}, 'rooms': {}},
+            'Impact Crater': {
+                'rooms': {},
+                'transports': {
+                    'Crater Entry Point': 'Artifact Temple',
+                },
+            },
             'Phendrana Drifts': {
                 'transports': {
                     'Phendrana Drifts North\x00(Phendrana Shorelines)': 'Tallon Overworld East\x00(Frigate Crash Site)',
@@ -396,6 +489,7 @@ def test_create_patch_data(test_files_dir):
                          'hudmemoText': 'Sent Energy Tank to Echoes!',
                          'count': 90, 'respawn': False}]}}},
             'Tallon Overworld': {'transports': {
+                'Artifact Temple': 'Crater Entry Point',
                 'Tallon Overworld North\x00(Tallon Canyon)': 'Chozo Ruins East\x00(Reflecting Pool, Save Station)',
                 'Tallon Overworld East\x00(Frigate Crash Site)': 'Phendrana Drifts North\x00(Phendrana Shorelines)',
                 'Tallon Overworld West\x00(Root Cave)': 'Magmoor Caverns North\x00(Lava Lake)',

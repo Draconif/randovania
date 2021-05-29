@@ -62,7 +62,7 @@ setup(
         'Programming Language :: Python :: 3 :: Only',
         'Topic :: Games/Entertainment',
     ],
-    python_requires=">=3.7",
+    python_requires=">=3.9",
     setup_requires=[
         "setuptools_scm>=3.5.0",
         "pyqt-distutils",
@@ -74,14 +74,14 @@ setup(
         'tenacity>=7.0.0',
         'python-slugify',
         'python-socketio[asyncio_client]',
-        'aiohttp[speedups]',
+        'aiohttp',
         'aiofiles',
         'dulwich>=0.20',
         'py_randomprime>=0.2.0',
     ],
     extras_require={
         "gui": [
-            'PySide2>=5.12,<5.16',
+            'PySide2>=5.15,<5.16',
             'appdirs',
             'qasync',
             'async-wiiload',

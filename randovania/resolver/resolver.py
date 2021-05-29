@@ -1,7 +1,8 @@
 import asyncio
+import copy
 from typing import Optional, Tuple, Callable, FrozenSet
 
-from randovania.game_description import data_reader
+from randovania.game_description import data_reader, default_database
 from randovania.game_description.game_patches import GamePatches
 from randovania.game_description.node import PickupNode, ResourceNode, EventNode, Node
 from randovania.game_description.requirements import RequirementSet, RequirementList
@@ -23,7 +24,7 @@ def _simplify_requirement_list(self: RequirementList, state: State,
         if item.negate:
             return None
 
-        if item.satisfied(state.resources, state.energy):
+        if item.satisfied(state.resources, state.energy, state.resource_database):
             continue
 
         if item.resource not in dangerous_resources:
@@ -59,7 +60,8 @@ def _should_check_if_action_is_safe(state: State,
     :return:
     """
     if any(resource in dangerous_resources
-           for resource in action.resource_gain_on_collect(state.patches, state.resources, all_nodes)):
+           for resource in action.resource_gain_on_collect(state.patches, state.resources, all_nodes,
+                                                           state.resource_database)):
         return False
 
     if isinstance(action, EventNode):
@@ -93,7 +95,7 @@ async def _inner_advance_depth(state: State,
     :return:
     """
 
-    if logic.game.victory_condition.satisfied(state.resources, state.energy):
+    if logic.game.victory_condition.satisfied(state.resources, state.energy, state.resource_database):
         return state, True
 
     # Yield back to the asyncio runner, so cancel can do something
@@ -173,7 +175,7 @@ async def resolve(configuration: EchoesConfiguration,
     if status_update is None:
         status_update = _quiet_print
 
-    game = data_reader.decode_data(configuration.game_data)
+    game = copy.deepcopy(default_database.game_description_for(configuration.game))
     event_pickup.replace_with_event_pickups(game)
 
     new_game, starting_state = logic_bootstrap(configuration, game, patches)

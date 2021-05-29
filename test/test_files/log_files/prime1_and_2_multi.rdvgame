@@ -166,7 +166,10 @@
                                 "num_shuffled_pickups": 1
                             }
                         },
-                        "default_items": {},
+                        "default_items": {
+                            "visor": "Combat Visor",
+                            "beam": "Power Beam"
+                        },
                         "minimum_random_starting_items": 1,
                         "maximum_random_starting_items": 1
                     },
@@ -200,7 +203,14 @@
                         "allow_unvisited_room_names": true
                     },
                     "energy_per_tank": 110,
-                    "dangerous_energy_tank": false
+                    "artifacts": 12,
+                    "heat_damage": 10.0,
+                    "heat_protection_only_varia": true,
+                    "progressive_damage_reduction": true,
+                    "qol_logical": true,
+                    "qol_game_breaking": true,
+                    "qol_minor_cutscenes": false,
+                    "qol_major_cutscenes": false
                 }
             },
             {
@@ -528,10 +538,12 @@
                 "Tallon Overworld/Transport to Magmoor Caverns East": "Magmoor Caverns/Transport to Chozo Ruins North",
                 "Tallon Overworld/Transport to Chozo Ruins South": "Chozo Ruins/Transport to Tallon Overworld North",
                 "Tallon Overworld/Transport to Phazon Mines East": "Chozo Ruins/Transport to Magmoor Caverns North",
+                "Tallon Overworld/Artifact Temple": "Impact Crater/Crater Entry Point",
                 "Chozo Ruins/Transport to Tallon Overworld North": "Tallon Overworld/Transport to Chozo Ruins South",
                 "Chozo Ruins/Transport to Magmoor Caverns North": "Tallon Overworld/Transport to Phazon Mines East",
                 "Chozo Ruins/Transport to Tallon Overworld East": "Tallon Overworld/Transport to Chozo Ruins West",
-                "Chozo Ruins/Transport to Tallon Overworld South": "Magmoor Caverns/Transport to Phazon Mines West"
+                "Chozo Ruins/Transport to Tallon Overworld South": "Magmoor Caverns/Transport to Phazon Mines West",
+                "Impact Crater/Crater Entry Point": "Tallon Overworld/Artifact Temple"
             },
             "translators": {},
             "locations": {

@@ -1,21 +1,22 @@
 import dataclasses
 import json
 import uuid
-from typing import Optional, List, Iterator, Tuple, Union
+from typing import Optional, List, Iterator, Tuple, Union, Type, Dict
 
 from randovania.bitpacking import bitpacking
 from randovania.bitpacking.bitpacking import BitPackDecoder, BitPackValue
 from randovania.games.game import RandovaniaGame
 from randovania.layout.corruption_configuration import CorruptionConfiguration
 from randovania.layout.echoes_configuration import EchoesConfiguration
-from randovania.layout.prime_configuration import PrimeConfiguration
+from randovania.layout.prime1.prime_configuration import PrimeConfiguration
 
 
 def _dictionary_byte_hash(data: dict) -> int:
     return bitpacking.single_byte_hash(json.dumps(data, separators=(',', ':')).encode("UTF-8"))
 
 
-_game_to_config = {
+AnyGameConfiguration = Union[PrimeConfiguration, EchoesConfiguration, CorruptionConfiguration]
+_game_to_config: Dict[RandovaniaGame, Type[AnyGameConfiguration]] = {
     RandovaniaGame.PRIME1: PrimeConfiguration,
     RandovaniaGame.PRIME2: EchoesConfiguration,
     RandovaniaGame.PRIME3: CorruptionConfiguration,
@@ -29,7 +30,7 @@ class Preset(BitPackValue):
     description: str
     base_preset_uuid: Optional[uuid.UUID]
     game: RandovaniaGame
-    configuration: Union[EchoesConfiguration, CorruptionConfiguration]
+    configuration: AnyGameConfiguration
 
     @property
     def as_json(self) -> dict:

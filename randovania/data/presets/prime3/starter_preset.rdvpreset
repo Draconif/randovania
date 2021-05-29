@@ -1,10 +1,10 @@
 {
     "schema_version": 10,
-    "uuid": "e36f52b3-ccd9-4dd7-a18f-b57b25f6b079",
-    "name": "Prime Preset",
-    "description": "Metroid Prime for the Nintendo Gamecube",
+    "uuid": "5682c9ef-d447-4327-b473-ba1216d83439",
+    "name": "Starter Preset",
+    "description": "In these settings, the game starts after the two trips to G.F.S. Olympus and the pirate attack to Norion, but with no items you'd have at that moment.",
     "base_preset_uuid": null,
-    "game": "prime1",
+    "game": "prime3",
     "configuration": {
         "trick_level": {
             "minimal_logic": false,
@@ -12,8 +12,8 @@
         },
         "starting_location": [
             {
-                "world_asset_id": 972217896,
-                "area_asset_id": 2993688902
+                "world_asset_id": 13921744762140409337,
+                "area_asset_id": 15622764306970326849
             }
         ],
         "available_locations": {
@@ -23,7 +23,7 @@
         "major_items_configuration": {
             "items_state": {
                 "Charge Beam": {
-                    "num_shuffled_pickups": 1
+                    "num_included_in_starting_items": 1
                 },
                 "Power Beam": {
                     "num_included_in_starting_items": 1
@@ -31,19 +31,30 @@
                 "Plasma Beam": {
                     "num_shuffled_pickups": 1
                 },
-                "Ice Beam": {
+                "Nova Beam": {
                     "num_shuffled_pickups": 1
                 },
-                "Wave Beam": {
-                    "num_shuffled_pickups": 1
-                },
+                "Progressive Beam": {},
                 "Missile Launcher": {
                     "num_shuffled_pickups": 1,
                     "included_ammo": [
                         5
                     ]
                 },
-                "Grapple Beam": {
+                "Ice Missile": {
+                    "num_shuffled_pickups": 1
+                },
+                "Seeker Missile": {
+                    "num_shuffled_pickups": 1
+                },
+                "Progressive Missile": {},
+                "Grapple Lasso": {
+                    "num_shuffled_pickups": 1
+                },
+                "Grapple Swing": {
+                    "num_shuffled_pickups": 1
+                },
+                "Grapple Voltage": {
                     "num_shuffled_pickups": 1
                 },
                 "Combat Visor": {
@@ -52,59 +63,56 @@
                 "Scan Visor": {
                     "num_included_in_starting_items": 1
                 },
-                "Thermal Visor": {
+                "Command Visor": {
                     "num_shuffled_pickups": 1
                 },
                 "X-Ray Visor": {
                     "num_shuffled_pickups": 1
                 },
                 "Space Jump Boots": {
+                    "num_included_in_starting_items": 1
+                },
+                "Screw Attack": {
+                    "num_shuffled_pickups": 1
+                },
+                "Hazard Shield": {
                     "num_shuffled_pickups": 1
                 },
                 "Energy Tank": {
                     "num_shuffled_pickups": 14
                 },
                 "Morph Ball": {
-                    "num_shuffled_pickups": 1
+                    "num_included_in_starting_items": 1
                 },
-                "Morph Ball Bomb": {
-                    "num_shuffled_pickups": 1
+                "Morph Ball Bombs": {
+                    "num_included_in_starting_items": 1
                 },
                 "Boost Ball": {
                     "num_shuffled_pickups": 1
                 },
-                "Power Bomb": {
-                    "num_shuffled_pickups": 1,
-                    "included_ammo": [
-                        4
-                    ]
-                },
                 "Spider Ball": {
                     "num_shuffled_pickups": 1
                 },
-                "Power Suit": {
-                    "num_included_in_starting_items": 1
-                },
-                "Varia Suit": {
+                "Hypermode": {
                     "num_shuffled_pickups": 1
                 },
-                "Gravity Suit": {
+                "Hyper Missile": {
                     "num_shuffled_pickups": 1
                 },
-                "Phazon Suit": {
+                "Hyper Ball": {
                     "num_shuffled_pickups": 1
                 },
-                "Super Missile": {
+                "Hyper Grapple": {
                     "num_shuffled_pickups": 1
                 },
-                "Wavebuster": {
+                "Ship Grapple": {
                     "num_shuffled_pickups": 1
                 },
-                "Ice Spreader": {
-                    "num_shuffled_pickups": 1
-                },
-                "Flamethrower": {
-                    "num_shuffled_pickups": 1
+                "Ship Missile": {
+                    "num_shuffled_pickups": 1,
+                    "included_ammo": [
+                        3
+                    ]
                 }
             },
             "default_items": {},
@@ -114,7 +122,7 @@
         "ammo_configuration": {
             "maximum_ammo": {
                 "4": 250,
-                "7": 8
+                "45": 11
             },
             "items_state": {
                 "Missile Expansion": {
@@ -122,9 +130,9 @@
                     "pickup_count": 49,
                     "requires_major_item": true
                 },
-                "Power Bomb Expansion": {
+                "Ship Missile Expansion": {
                     "variance": 0,
-                    "pickup_count": 4,
+                    "pickup_count": 8,
                     "requires_major_item": true
                 }
             }
@@ -140,7 +148,6 @@
             "skip_final_bosses": false,
             "allow_unvisited_room_names": true
         },
-        "energy_per_tank": 100,
-        "dangerous_energy_tank": false
+        "energy_per_tank": 100
     }
 }

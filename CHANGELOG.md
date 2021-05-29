@@ -8,11 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+-   **Major** - Metroid Prime 1 is now fully supported, including multiworld!
+
 -   **Major** - Presets are now presented in a tree view, with custom presets being nested under another one. They're also saved separately from Randovania data.
 
 -   Added: Auto tracker now supports Prime 1.
 
 -   Added: A second theme for the auto tracker for Echoes, which uses images of the in game models. Thanks MaskedKirby.
+
+-   Changed: Customizing Dark Aether damage is not considered by logic.
+
+-   Changed: Pickup visibility method is now configured in the Item Pool tab.
 
 -   Changed: Multiworld connection is slightly more conservative when giving items.
 
@@ -30,6 +36,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   Added: Method of leaving Dark Agon Temple by opening the gate from OoB with Single Room OoB, Slope Jump, Standable Terrain, Bomb Space Jump, Space Jump, and the Agon Keys (Expert and above).
 
+-	Added: Method of reaching Abandoned Worksite door with Space Jump and Extended Dash (Advanced and above).
+
+-	Added: Method of Crossing Grand Windchamber (both ways) Without Space Jump using Extended Dash (Hypermode).
+
+-   Added: Method of reaching the pickup in Watch Station with Space Jump, Screw Attack, and Single Room OoB (Expert and above).
+
 -   Changed: Reaching the pickup in Temple Transport B with a Wall Boost is now Hypermode (from Expert).
 
 -   Changed: Reaching the pickup in Path of Roots with only Bombs is now Expert (from Hypermode).
@@ -41,6 +53,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Changed: Trial Grounds, reaching the door:
     - From the portal with Space Jump and a Slope Jump is now Beginner (from Intermediate).
     - From the left safe zone with a Dash is now Intermediate (from Expert) and without anything is now Advanced (from Expert).
+	
+-   Changed: Opening the Seeker Lock without Seekers in Mine Shaft is now Advanced (From Expert)
+
+-   Changed: Opening the Seeker Lock without Seekers in Plain of Dark Worship is now Expert (From Hypermode).
+
+-   Changed: Reaching the Windchamber Gateway Door from Windchamber Tunnel with a Boost Jump is now Hypermode (From Expert).
 
 ## [2.6.1] - 2021-05-05
 
